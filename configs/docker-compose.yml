@@ -217,7 +217,7 @@ services:
   # -d`. It is a multi-gigabyte image and is pointless on a machine without a
   # usable GPU.
   ollama:
-    image: ollama/ollama:0.40.4
+    image: ollama/ollama:0.40.14
     profiles:
       - ai
     restart: unless-stopped
