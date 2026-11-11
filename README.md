@@ -77,14 +77,15 @@ A copy of the applied config is stored at `/etc/spectre-docker/spectre-docker.co
 
 - Backups are **explicit**: only paths listed in `BACKUP_PATHS` (plus defaults like `/etc` and `/etc/spectre-docker`) are archived. Application data is not discovered automatically.
 - Archives are written to `BACKUP_TARGET_DIR` as `spectre-docker-<host>-<timestamp>.tar.gz` and pruned to `BACKUP_RETENTION_COUNT`.
+- A root-run script is installed at `/usr/local/sbin/spectre-docker-backup` (with `--help`, `--list`, `--config` support) and scheduled via cron (`/etc/cron.d/spectre-docker-backup`) when enabled. Output is logged to `/var/log/spectre-docker-backup.log`.
 - To run a backup manually: `sudo /usr/local/sbin/spectre-docker-backup`
-- To list archives: `ls -lt /var/backups/spectre-docker`
+- To list archives: `sudo /usr/local/sbin/spectre-docker-backup --list` (or `ls -lt /var/backups/spectre-docker`)
 - **Restore (example):** extract needed files from an archive after reviewing contents:
   ```bash
   sudo tar -tzf /var/backups/spectre-docker/spectre-docker-<host>-<timestamp>.tar.gz
   sudo tar -xzpf /var/backups/spectre-docker/spectre-docker-<host>-<timestamp>.tar.gz -C / <path/to/restore>
   ```
-  Restore carefully (especially `/etc` contents and service configs) and reload/restart affected services as appropriate. Test restores in a safe environment.
+  Restore carefully (especially `/etc` contents and service configs) and reload/restart affected services as appropriate. Test restores in a safe environment. For disaster recovery, keep backups on a separate/mounted volume or copy archives off-host as part of your operational process.
 
 ## Idempotency and re-runs
 
