@@ -18,7 +18,7 @@ The setup will detect unsupported systems and exit with a clear error.
 ## Quick start
 
 ```bash
-git clone <this-repo> spectre-docker
+git clone git@github.com:bigwalkdoe/spectre-docker.git
 cd spectre-docker
 
 cp config/spectre-docker.conf.example config/spectre-docker.conf
@@ -100,12 +100,22 @@ Re-running `sudo ./setup.sh` is supported. Modules aim to converge state without
 - `templates/` — managed config/script templates
 - `docs/` — design and plans
 
+## Operations and troubleshooting
+
+- **Config validation:** run `./setup.sh --dry-run --config /path/to/config` to validate settings and preview planned modules without system changes.
+- **Re-runs:** `sudo ./setup.sh` is idempotent; review output for modules that changed state or restarted services.
+- **SSH safety:** always keep an existing session open and verify new SSH access (port, key, user) in a separate session before disconnecting. If lockout safety blocks setup, provide `ADMIN_SSH_PUBLIC_KEYS` or intentionally set `ALLOW_LOCKOUT_RISK=yes`.
+- **Firewall and Docker ports:** UFW defaults to deny incoming (SSH rate-limited + configured ports allowed). Docker-published ports are additionally guarded by conservative `DOCKER-USER`/forward restrictions; validate external reachability for any `-p`/Compose `ports` you publish and adjust rules intentionally if exposure is required.
+- **Service checks:** `sudo systemctl status ssh|sshd ufw fail2ban docker`, `sudo ufw status verbose`, `sudo fail2ban-client status sshd`, `docker info`.
+- **Logs:** setup output is printed to stdout/stderr; backups log to `/var/log/spectre-docker-backup.log`; system service logs via `journalctl -u <service>`.
+- **Validation:** see [`docs/validation.md`](docs/validation.md) for a host-level checklist.
+
 ## Development checks
 
 ```bash
 find . -name "*.sh" -type f -print0 | xargs -0 -n1 bash -n
 # if available:
-# shellcheck -S style setup.sh lib/*.sh modules/*.sh templates/backup/spectre-docker-backup.sh
+shellcheck -S style setup.sh lib/*.sh modules/*.sh templates/backup/spectre-docker-backup.sh templates/firewall/spectre-docker-apply-docker-fw.sh
 ```
 
 ## License
