@@ -1,12 +1,7 @@
-# Environment variables with sensitive data
-.env
-.env.local
-.env.*.local
+# Local spectre-docker configuration (may contain environment-specific settings)
+spectre-docker.conf
 
-# Docker files
-docker-compose.override.yml
-
-# Service credentials
-*.key
-*.pem
-credentials.json
+# Local runtime/state artifacts
+*.local
+state/
+tmp/
