@@ -5,37 +5,9 @@ _spectre_default_iface() {
   ip route show default 2>/dev/null | awk '/default/ {print $5; exit}' || true
 }
 
-_spectre_ensure_docker_user_rules() {
-  # Conservative: prevent Docker published ports from being unintentionally exposed.
-  # Allow established/related and traffic originating from docker bridges; drop NEW
-  # forwarded traffic arriving on the default external interface. Intentional container
-  # exposure should be managed explicitly (e.g. adjust DOCKER-USER rules or do not publish).
-  command_exists iptables || return 0
-  iptables -nL DOCKER-USER >/dev/null 2>&1 || return 0
-
-  local ext_if
-  ext_if="$(_spectre_default_iface)"
-
-  # Ensure base accepts
-  iptables -C DOCKER-USER -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT 2>/dev/null || \
-    iptables -I DOCKER-USER 1 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
-  iptables -C DOCKER-USER -i lo -j ACCEPT 2>/dev/null || \
-    iptables -I DOCKER-USER 2 -i lo -j ACCEPT
-  iptables -C DOCKER-USER -i docker0 -j ACCEPT 2>/dev/null || true
-  # br- interfaces (compose networks) - best effort accept from bridge side
-  # (we avoid complex dynamic enumeration; Docker will manage its own rules, we only guard external ingress)
-
-  if [[ -n "$ext_if" ]]; then
-    # Drop NEW inbound forwarded traffic from external interface by default (placed at end if not present)
-    if ! iptables -C DOCKER-USER -i "$ext_if" -m conntrack --ctstate NEW -j DROP 2>/dev/null; then
-      iptables -A DOCKER-USER -i "$ext_if" -m conntrack --ctstate NEW -j DROP || true
-    fi
-  fi
-}
-
 run_module() {
-  log_info "Configuring UFW firewall..."
-  ensure_packages ufw iproute2
+  log_info "Configuring UFW firewall and Docker exposure safeguards..."
+  ensure_packages ufw iproute2 iptables
 
   # Defaults
   ufw --force default deny incoming >/dev/null
@@ -68,9 +40,31 @@ run_module() {
   ufw --force enable >/dev/null
   log_ok "UFW enabled (default deny incoming, allow outgoing, SSH ${SSH_PORT}/tcp rate-limited)."
 
-  # Apply Docker exposure mitigation (best-effort; DOCKER-USER may be (re)created by Docker later)
-  _spectre_ensure_docker_user_rules || true
-  log_info "Applied conservative Docker forwarding restrictions (DOCKER-USER) where possible."
+  # Install persistent Docker firewall helper and reapply hook
+  local helper_src="${SCRIPT_DIR}/templates/firewall/spectre-docker-apply-docker-fw.sh"
+  local dropin_src="${SCRIPT_DIR}/templates/firewall/spectre-docker-ufw.conf.tmpl"
+  if [[ -f "$helper_src" ]]; then
+    install -m 0750 -o root -g root "$helper_src" /usr/local/sbin/spectre-docker-apply-docker-fw
+    log_info "Installed /usr/local/sbin/spectre-docker-apply-docker-fw"
+  else
+    log_warn "Missing firewall helper template: $helper_src"
+  fi
+
+  mkdir -p /etc/systemd/system/docker.service.d
+  if [[ -f "$dropin_src" ]]; then
+    if write_file_if_changed "/etc/systemd/system/docker.service.d/spectre-docker.conf" 0644 "root:root" "$dropin_src"; then
+      systemctl daemon-reload || true
+      log_info "Installed docker.service drop-in to reapply firewall restrictions after Docker starts."
+    else
+      log_info "docker.service firewall drop-in already up to date."
+    fi
+  fi
+
+  # Apply now if Docker/chain is present (best-effort)
+  if [[ -x /usr/local/sbin/spectre-docker-apply-docker-fw ]]; then
+    /usr/local/sbin/spectre-docker-apply-docker-fw || true
+    log_info "Applied conservative Docker forwarding restrictions where possible."
+  fi
 
   ufw status verbose || true
 }
