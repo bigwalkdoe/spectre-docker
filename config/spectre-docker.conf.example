@@ -1,0 +1,44 @@
+# spectre-docker configuration
+# Copy to config/spectre-docker.conf and edit before running: sudo ./setup.sh
+#
+# This file is parsed as simple KEY=VALUE pairs (no shell execution).
+# Lines starting with # and blank lines are ignored. Quote values if they contain spaces.
+
+# --- Admin user -------------------------------------------------------------
+# Non-root administrative/deploy user to create/ensure (added to sudo and docker groups).
+ADMIN_USER="deploy"
+
+# SSH public key(s) for ADMIN_USER. Provide either:
+#   - a path to a file containing one or more public keys, OR
+#   - inline public key material (e.g. "ssh-ed25519 AAAA... user@host")
+# Required for safe access when SSH_PASSWORD_AUTH=no (default).
+ADMIN_SSH_PUBLIC_KEYS=""
+
+# --- SSH hardening ----------------------------------------------------------
+SSH_PORT="22"
+# "no" (default, recommended): key-based auth only. "yes": allow password auth (explicit opt-in).
+SSH_PASSWORD_AUTH="no"
+# "no" (default): disable root SSH login. Other values: yes, prohibit-password, forced-commands-only.
+SSH_PERMIT_ROOT_LOGIN="no"
+SSH_PUBKEY_AUTH="yes"
+
+# Safety override: set to "yes" ONLY if you intentionally accept lockout risk when
+# SSH_PASSWORD_AUTH=no and no admin public key is configured/found.
+ALLOW_LOCKOUT_RISK="no"
+
+# --- Firewall (UFW) ---------------------------------------------------------
+# Extra TCP ports to allow inbound (space-separated), e.g. "80 443". SSH_PORT is allowed automatically.
+UFW_ALLOWED_TCP_PORTS=""
+
+# --- Backups ----------------------------------------------------------------
+# Enable scheduled backups of host/config state and configured paths.
+BACKUP_ENABLED="yes"
+# Local target directory for backup archives (can be a mounted remote path).
+BACKUP_TARGET_DIR="/var/backups/spectre-docker"
+# Space-separated paths to include in backups (explicit; app data is not guessed).
+# Defaults cover system config and spectre-docker managed state.
+BACKUP_PATHS="/etc /etc/spectre-docker"
+# Number of backup archives to retain.
+BACKUP_RETENTION_COUNT="7"
+# Schedule hint: "daily" (default). Used by the installed scheduler.
+BACKUP_SCHEDULE="daily"
