@@ -4,19 +4,19 @@
 This file provides guidance to AI agents working in this repository. Follow these instructions to maintain consistency, quality, and safety.
 
 ## Project context
-`spectre-docker` is an opinionated, config-driven Bash bootstrap for fresh **Ubuntu/Debian** servers. It installs and hardens Docker Engine (+ Compose plugin) and applies a secure host baseline (users/SSH, firewall, fail2ban, updates, backups). It does **not** deploy or run user applications.
+`spectre-docker` is an opinionated, config-driven Bash bootstrap for fresh **Ubuntu/Debian** servers. It installs and hardens Docker Engine (+ Compose plugin) and applies a secure host baseline (users/SSH, firewall, fail2ban, unattended upgrades, backups). It does **not** deploy or run user applications.
 
 ## Core Principles
 - Understand before changing: read relevant code, docs, and the spec/plan before modifying behavior
 - Make minimal, focused changes that solve the stated problem
-- Follow existing patterns, conventions, and architecture
+- Follow existing patterns, conventions, and architecture (`setup.sh`, `lib/`, `modules/`, `templates/`, `config/`)
 - Test and verify your changes (syntax checks, linting, and safe dry validation where possible)
 - Leave the codebase better than you found it
 
 ## Repository Exploration
 Before making significant changes:
 1. Read `README.md`, `config/spectre-docker.conf.example`, and relevant scripts/modules
-2. Understand structure (`setup.sh`, `lib/`, `modules/`, `templates/`, `config/`)
+2. Review `docs/superpowers/specs/2026-11-11-spectre-docker-design.md` and `docs/superpowers/plans/2026-11-11-spectre-docker.md` for intent and decisions
 3. Check git history and current branch state
 
 ## Development Workflow
@@ -29,7 +29,7 @@ Before making significant changes:
 
 ## Code Quality
 - Write clear, auditable shell scripts (`set -euo pipefail` where appropriate)
-- Keep modules single-responsibility and idempotent
+- Keep modules single-responsibility, ordered, and idempotent
 - Handle errors with clear messages; fail safely (especially around SSH/lockout and firewall)
 - Avoid over-engineering and unnecessary dependencies
 
@@ -37,7 +37,7 @@ Before making significant changes:
 - Never commit secrets or real local configuration (`config/spectre-docker.conf` is local/gitignored)
 - Do not weaken security defaults silently; risky options must be explicit opt-in
 - Be careful with destructive operations and system-level changes
-- Ask for clarification on high-risk or ambiguous changes
+- Validate security-sensitive changes (lockout safety, `sshd -t` before reload, firewall/Docker exposure intent)
 
 ## Git Practices
 - Make atomic, well-described commits

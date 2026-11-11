@@ -1,18 +1,7 @@
-# Keep the pinned dependencies in this repository up to date.
-#
-# Everything here is pinned deliberately: actions to commit SHAs, images to
-# explicit tags. Pinning buys reproducibility, but nothing moves on its own, so a
-# security release would otherwise go unnoticed. Dependabot understands SHA pins
-# and rewrites both the SHA and its `# vX.Y.Z` comment, which keeps the pin exact
-# and the version readable.
-#
-# Each group covers minor and patch updates only. A major bump deliberately falls
-# outside the group and arrives as its own pull request, so it cannot ride along
-# unnoticed inside a routine batch. CI runs on these pull requests.
+# Keep pinned dependencies in this repository up to date.
 version: 2
 updates:
   - package-ecosystem: "github-actions"
-    # The workflows live in .github/workflows, which is relative to the root.
     directory: "/"
     schedule:
       interval: "weekly"
@@ -25,40 +14,3 @@ updates:
           - "patch"
     commit-message:
       prefix: "ci"
-
-  # The compose file's images: nginx, postgres, redis and ollama.
-  - package-ecosystem: "docker-compose"
-    directory: "/configs"
-    schedule:
-      interval: "weekly"
-    ignore:
-      # Built locally from ../app by this same compose file. There is no registry
-      # image behind this tag, so there is nothing for Dependabot to update.
-      - dependency-name: "spectre-server-layer-app"
-    groups:
-      compose-images:
-        patterns:
-          - "*"
-        update-types:
-          - "minor"
-          - "patch"
-    commit-message:
-      prefix: "docker-compose"
-
-  # The application image's base: FROM node:25-alpine in app/Dockerfile.
-  - package-ecosystem: "docker"
-    directory: "/app"
-    schedule:
-      interval: "weekly"
-    groups:
-      base-images:
-        patterns:
-          - "*"
-        update-types:
-          - "minor"
-          - "patch"
-    commit-message:
-      prefix: "docker"
-    # No ignore rule for the Node major: the group above covers minor and patch,
-    # so a major (25 -> 26) arrives as its own pull request. That keeps the
-    # change isolated without hiding it.

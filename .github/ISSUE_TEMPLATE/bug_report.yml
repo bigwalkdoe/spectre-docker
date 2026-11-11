@@ -1,24 +1,21 @@
 name: Bug report
-description: Something isn't working in the stack or a script
+description: Something isn't working in spectre-docker
 title: "bug: "
 labels: ["bug"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for reporting. Filling in the details below lets me reproduce
-        the problem without a round-trip. Please run every step before
-        posting — most "it doesn't work" reports are covered by the README's
-        [Troubleshooting](../README.md#troubleshooting) section.
+        Thanks for reporting. Please include enough detail to reproduce the issue on a fresh Ubuntu/Debian server.
 
   - type: checkboxes
     id: checks
     attributes:
       label: Checked
       options:
-        - label: I read the README, including Troubleshooting.
+        - label: I read the README and relevant documentation.
           required: true
-        - label: I copied `configs/.env.example` to `configs/.env` before configuring.
+        - label: I copied `config/spectre-docker.conf.example` to `config/spectre-docker.conf` before running setup.
           required: false
         - label: This is not a security vulnerability (see SECURITY.md).
           required: true
@@ -26,26 +23,9 @@ body:
   - type: input
     id: os
     attributes:
-      label: Host OS / SELinux
-      description: e.g. "Fedora 43, SELinux Enforcing", "Ubuntu 24.04, SELinux Disabled"
-      placeholder: "Fedora 43, SELinux Enforcing"
-    validations:
-      required: true
-
-  - type: input
-    id: docker
-    attributes:
-      label: Docker / Compose versions
-      placeholder: "Docker 29.8, Compose 5.6"
-    validations:
-      required: true
-
-  - type: input
-    id: ports
-    attributes:
-      label: Host ports used
-      description: The defaults are 8081 (HTTP) and 8443 (HTTPS).
-      placeholder: "NGINX_HTTP_PORT=8081 NGINX_HTTPS_PORT=8443"
+      label: OS and version
+      description: e.g. "Ubuntu 24.04 LTS" or "Debian 12"
+      placeholder: "Ubuntu 24.04 LTS"
     validations:
       required: true
 
@@ -53,12 +33,10 @@ body:
     id: repro
     attributes:
       label: Steps to reproduce
-      description: From `git clone` if you can, so I can paste and run.
       placeholder: |
-        1. git clone ...
-        2. cp configs/.env.example configs/.env
-        3. ./start.sh
-        4. ./smoke-test.sh
+        1. Fresh server state
+        2. cp config/spectre-docker.conf.example config/spectre-docker.conf
+        3. sudo ./setup.sh
     validations:
       required: true
 
@@ -66,7 +44,7 @@ body:
     id: actual
     attributes:
       label: What actually happened
-      description: Paste the output of `./logs.sh` (not just what you saw).
+      description: Paste relevant command output/logs.
       render: shell
     validations:
       required: true
@@ -79,10 +57,10 @@ body:
       required: true
 
   - type: textarea
-    id: env
+    id: config
     attributes:
-      label: Redacted config
-      description: Contents of `configs/.env` with passwords and any secrets removed.
+      label: Redacted config (if relevant)
+      description: Contents of `config/spectre-docker.conf` with any sensitive values removed.
       render: shell
     validations:
       required: false
