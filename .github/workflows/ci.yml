@@ -6,76 +6,38 @@ on:
   pull_request:
 
 # Third-party actions are pinned to immutable commit SHAs, with the human-readable
-# version in a trailing comment. A mutable tag such as `@v7` can be repointed by
-# the action's owner, so a pinned SHA is the only thing that guarantees the code
-# running here is the code that was reviewed. Bump the SHA and the comment
-# together.
-# Cancel superseded runs on the same ref.
+# version in a trailing comment.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   shell:
-    name: Shell scripts
+    name: Shell checks
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Syntax check
+      - name: Syntax check (bash -n)
         run: |
-          for script in start.sh stop.sh status.sh logs.sh smoke-test.sh gen-dev-cert.sh; do
-            bash -n "$script"
-            echo "  $script ok"
+          set -euo pipefail
+          files="$(find . -type f -name '*.sh' ! -path './.git/*' | sort)"
+          if [ -z "$files" ]; then
+            echo "No shell scripts found."
+            exit 0
+          fi
+          echo "$files" | while IFS= read -r f; do
+            bash -n "$f"
+            echo "  ok: $f"
           done
 
-      - name: shellcheck
-        run: shellcheck -S style start.sh stop.sh status.sh logs.sh smoke-test.sh gen-dev-cert.sh
-
-  unit:
-    name: Application unit tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: "24"
-          # This service has no dependencies, no lockfile and no install step,
-          # so there is nothing to cache. Pinned off explicitly so that adding a
-          # `packageManager` field later cannot silently enable cache setup that
-          # would then fail looking for a lockfile.
-          package-manager-cache: false
-
-      # The service has no runtime dependencies, so there is nothing to install.
-      - name: Test
-        working-directory: app
-        run: npm test
-
-  smoke:
-    name: End-to-end smoke test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: "24"
-          # Nothing is installed here either; see the unit-test job.
-          package-manager-cache: false
-
-      - name: Show Docker versions
+      - name: ShellCheck
         run: |
-          docker --version
-          docker compose version
-
-      - name: Validate compose configuration
-        env:
-          # The stack fails closed without these, by design; CI supplies
-          # throwaway values just to validate that the file parses.
-          POSTGRES_PASSWORD: ci-postgres
-          REDIS_PASSWORD: ci-redis
-        run: docker compose -f configs/docker-compose.yml config --quiet
-
-      - name: Smoke test
-        run: ./smoke-test.sh
+          set -euo pipefail
+          files="$(find . -type f -name '*.sh' ! -path './.git/*' | sort)"
+          if [ -z "$files" ]; then
+            echo "No shell scripts found."
+            exit 0
+          fi
+          # shellcheck shell=bash
+          echo "$files" | xargs shellcheck -S style

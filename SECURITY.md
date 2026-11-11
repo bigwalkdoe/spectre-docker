@@ -2,35 +2,19 @@
 
 ## Supported versions
 
-Security fixes are applied to the current `main` branch. There are no
-long-lived release branches, so `main` is the only supported line.
+Security fixes are applied to the current `main` branch.
 
 ## Reporting a vulnerability
 
-Please **do not** open a public issue for a security problem, and don't
-mention it in a pull request discussion, where others could see it.
+Please **do not** open a public issue for a security problem.
 
-Use GitHub's **Report a vulnerability** button (Repository → Security tab →
-"Report a vulnerability") to open a private security advisory. Anything
-sent there is visible only to the maintainers until it is ready to be
-disclosed.
+If private vulnerability reporting is enabled for this repository, use GitHub's **Report a vulnerability** flow (Security tab). Otherwise, contact the maintainers privately with:
 
-In the report, please include:
+- a description of the issue and affected component(s)
+- affected commit/version and target OS (Ubuntu/Debian release)
+- reproduction steps or proof of concept (if safe to share)
+- impact assessment and suggested remediation, if known
 
-- what the vulnerability is and which component is affected
-  (nginx config, the app, the Compose file, a script, …)
-- the commit or release you found it on
-- steps to reproduce, and any proof-of-concept you can safely share
-- your sense of the impact and how you'd recommend fixing it
+## Scope notes
 
-## What to expect
-
-- You'll get an acknowledgement as soon as the report is read — for
-  a one-person project that is usually within a few business days, but
-  this is best-effort rather than a contract.
-- We'll agree on a fix and a disclosure timeline with you, and credit
-  you in the announcement if you'd like.
-- Once the fix ships, the advisory is published and the coordinated
-  disclosure is made public.
-
-Thanks for taking the time to report it responsibly.
+`spectre-docker` configures system security settings (users, SSH, firewall, fail2ban, Docker, updates, backups). Reports involving lockout risk, unintended port exposure (including Docker/UFW interactions), privilege escalation, unsafe config handling, or data-loss paths in backups are especially relevant.

@@ -1,0 +1,14 @@
+# Managed by spectre-docker - SSH hardening drop-in
+Port __SSH_PORT__
+PermitRootLogin __SSH_PERMIT_ROOT_LOGIN__
+PasswordAuthentication __SSH_PASSWORD_AUTH__
+PubkeyAuthentication __SSH_PUBKEY_AUTH__
+KbdInteractiveAuthentication no
+ChallengeResponseAuthentication no
+MaxAuthTries 4
+PermitEmptyPasswords no
+X11Forwarding no
+LoginGraceTime 30
+ClientAliveInterval 300
+ClientAliveCountMax 2
+Subsystem sftp /usr/lib/openssh/sftp-server

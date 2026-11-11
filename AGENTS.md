@@ -3,57 +3,49 @@
 ## Purpose
 This file provides guidance to AI agents working in this repository. Follow these instructions to maintain consistency, quality, and safety.
 
+## Project context
+`spectre-docker` is an opinionated, config-driven Bash bootstrap for fresh **Ubuntu/Debian** servers. It installs and hardens Docker Engine (+ Compose plugin) and applies a secure host baseline (users/SSH, firewall, fail2ban, unattended upgrades, backups). It does **not** deploy or run user applications.
+
 ## Core Principles
-- Understand before changing: Read relevant code, tests, and docs first
+- Understand before changing: read relevant code, docs, and the spec/plan before modifying behavior
 - Make minimal, focused changes that solve the stated problem
-- Follow existing patterns, conventions, and architecture
-- Test your changes before considering them complete
+- Follow existing patterns, conventions, and architecture (`setup.sh`, `lib/`, `modules/`, `templates/`, `config/`)
+- Test and verify your changes (syntax checks, linting, and safe dry validation where possible)
 - Leave the codebase better than you found it
 
 ## Repository Exploration
 Before making significant changes:
-1. Read README.md, package.json/pyproject.toml, and other config files
-2. Understand the project structure, build system, and dependencies
-3. Look for existing tests to understand expected behavior
-4. Check git history and current branch state
+1. Read `README.md`, `config/spectre-docker.conf.example`, and relevant scripts/modules
+2. Review `docs/superpowers/specs/2026-11-11-spectre-docker-design.md` and `docs/superpowers/plans/2026-11-11-spectre-docker.md` for intent and decisions
+3. Check git history and current branch state
 
 ## Development Workflow
-1. **Inspect** - Understand the codebase and identify what needs to change
+1. **Inspect** - Understand what needs to change
 2. **Plan** - Break down the task into clear steps
 3. **Implement** - Make changes following existing patterns
-4. **Test** - Run relevant tests and linters
-5. **Verify** - Ensure changes work as expected
+4. **Test** - Run relevant checks (e.g. `bash -n`, `shellcheck` if available)
+5. **Verify** - Ensure behavior is correct and idempotent
 6. **Review** - Check for unintended side effects
 
 ## Code Quality
-- Write clear, self-documenting code
-- Follow the project's style guide (check existing code)
-- Add/update tests for new functionality
-- Keep functions small and focused
-- Handle errors appropriately
-- Avoid over-engineering
+- Write clear, auditable shell scripts (`set -euo pipefail` where appropriate)
+- Keep modules single-responsibility, ordered, and idempotent
+- Handle errors with clear messages; fail safely (especially around SSH/lockout and firewall)
+- Avoid over-engineering and unnecessary dependencies
 
-## Testing
-- Run tests related to your changes
-- Don't skip failing tests without understanding why
-- If tests fail due to your changes, fix them
-- If tests are outdated, update them appropriately
+## Safety Rules
+- Never commit secrets or real local configuration (`config/spectre-docker.conf` is local/gitignored)
+- Do not weaken security defaults silently; risky options must be explicit opt-in
+- Be careful with destructive operations and system-level changes
+- Validate security-sensitive changes (lockout safety, `sshd -t` before reload, firewall/Docker exposure intent)
 
 ## Git Practices
 - Make atomic, well-described commits
-- Don't commit secrets, keys, or sensitive data
 - Check `git status` before committing
 - Keep changes focused and reviewable
-
-## Safety Rules
-- Never commit secrets or credentials
-- Respect existing authentication/authorization patterns
-- Don't modify unrelated code
-- Be careful with destructive operations
-- Ask for clarification on high-risk changes
 
 ## Communication
 - Be concise and focused
 - Explain what you changed and why
-- Report test results and verification steps
+- Report verification steps and results
 - Flag any issues or concerns
