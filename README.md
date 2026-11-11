@@ -24,6 +24,9 @@ cd spectre-docker
 cp config/spectre-docker.conf.example config/spectre-docker.conf
 # edit config/spectre-docker.conf (set ADMIN_SSH_PUBLIC_KEYS, review defaults)
 
+# optional: validate config and preview planned modules without making changes
+./setup.sh --dry-run
+
 sudo ./setup.sh
 ```
 
