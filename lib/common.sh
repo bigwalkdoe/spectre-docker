@@ -3,6 +3,7 @@
 # spectre-docker common library (sourced by setup.sh and modules)
 
 if [[ -n "${SPECTRE_COMMON_LOADED:-}" ]]; then
+  # shellcheck disable=SC2317
   return 0 2>/dev/null || exit 0
 fi
 SPECTRE_COMMON_LOADED=1
@@ -31,10 +32,10 @@ require_root() {
 }
 
 # OS detection
-SPECTRE_OS_ID=""
-SPECTRE_OS_ID_LIKE=""
-SPECTRE_OS_VERSION_ID=""
-SPECTRE_OS_CODENAME=""
+export SPECTRE_OS_ID=""
+export SPECTRE_OS_ID_LIKE=""
+export SPECTRE_OS_VERSION_ID=""
+export SPECTRE_OS_CODENAME=""
 
 detect_os() {
   [[ -r /etc/os-release ]] || die "Cannot read /etc/os-release; unsupported system."
@@ -129,7 +130,9 @@ apply_config_defaults() {
 
 validate_config() {
   [[ "$ADMIN_USER" =~ ^[a-z_][a-z0-9_-]*[$]?$ ]] || die "ADMIN_USER '$ADMIN_USER' is not a valid username."
-  [[ "$SSH_PORT" =~ ^[0-9]+$ ]] && (( SSH_PORT >= 1 && SSH_PORT <= 65535 )) || die "SSH_PORT must be a valid port number."
+  if ! [[ "$SSH_PORT" =~ ^[0-9]+$ ]] || (( SSH_PORT < 1 || SSH_PORT > 65535 )); then
+    die "SSH_PORT must be a valid port number."
+  fi
   [[ "$BACKUP_RETENTION_COUNT" =~ ^[0-9]+$ ]] || die "BACKUP_RETENTION_COUNT must be a non-negative integer."
   case "$SSH_PASSWORD_AUTH" in yes|no) ;; *) die "SSH_PASSWORD_AUTH must be 'yes' or 'no'.";; esac
   case "$SSH_PERMIT_ROOT_LOGIN" in yes|no|prohibit-password|forced-commands-only) ;; *) die "SSH_PERMIT_ROOT_LOGIN must be yes|no|prohibit-password|forced-commands-only.";; esac

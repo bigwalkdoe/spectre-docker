@@ -134,9 +134,19 @@ main() {
   if command_exists systemctl; then
     local ssh_svc
     ssh_svc="$(get_ssh_service_name 2>/dev/null || echo ssh)"
-    systemctl is-active --quiet "$ssh_svc" 2>/dev/null && log_info "Check: SSH service (${ssh_svc}) is active." || log_warn "Check: SSH service (${ssh_svc}) not active."
-    systemctl is-active --quiet ufw 2>/dev/null && log_info "Check: UFW is active." || log_warn "Check: UFW not active."
-    command_exists docker && log_info "Check: Docker is installed." || true
+    if systemctl is-active --quiet "$ssh_svc" 2>/dev/null; then
+      log_info "Check: SSH service (${ssh_svc}) is active."
+    else
+      log_warn "Check: SSH service (${ssh_svc}) not active."
+    fi
+    if systemctl is-active --quiet ufw 2>/dev/null; then
+      log_info "Check: UFW is active."
+    else
+      log_warn "Check: UFW not active."
+    fi
+    if command_exists docker; then
+      log_info "Check: Docker is installed."
+    fi
   fi
   log_info "Verify SSH access in a separate session before closing your current one."
 }

@@ -39,8 +39,8 @@ main() {
   local ext_if
   ext_if="$(default_iface)"
   # Wait briefly for DOCKER-USER to exist if Docker is starting
-  local i
-  for i in 1 2 3 4 5; do
+  local _
+  for _ in 1 2 3 4 5; do
     if iptables -nL DOCKER-USER >/dev/null 2>&1; then
       break
     fi

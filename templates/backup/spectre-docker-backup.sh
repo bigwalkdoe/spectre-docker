@@ -52,7 +52,7 @@ main() {
   mkdir -p "$BACKUP_TARGET_DIR"
   chmod 750 "$BACKUP_TARGET_DIR" || true
 
-  local ts host archive tmp_list=() p existing=()
+  local ts host archive p existing=()
   ts="$(date +%Y%m%d-%H%M%S)"
   host="$(hostname -s 2>/dev/null || echo host)"
   archive="${BACKUP_TARGET_DIR}/spectre-docker-${host}-${ts}.tar.gz"
@@ -84,7 +84,11 @@ main() {
     [[ -z "$f" ]] && continue
     count=$((count+1))
     if (( count > BACKUP_RETENTION_COUNT )); then
-      rm -f -- "$f" && log "Pruned old backup: $f" || err "Failed to prune: $f"
+      if rm -f -- "$f"; then
+        log "Pruned old backup: $f"
+      else
+        err "Failed to prune: $f"
+      fi
     fi
   done < <(ls -1t "${BACKUP_TARGET_DIR}"/spectre-docker-*-*.tar.gz 2>/dev/null || true)
 
